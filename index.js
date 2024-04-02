@@ -21,6 +21,7 @@ const logger = async (req,res, next)=> {
 }
 const verifyToken = async(req,res, next)=> {
   const token = req.cookies?.token;
+  console.log(token);
   if(!token){
     return res.status(401).send({message: 'not Authorized'})
   }
@@ -68,7 +69,8 @@ app.post('/jwt',  async(req,res)=>{
   // const token = jwt.sign(user, 'secret', {expiresIn: '1h'})
   // res.send(token)
   const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECTET, { expiresIn: '1h' });
- res.cookie('token', token,{httpOnly:false, secure: false, 
+ res.cookie('token', token,{httpOnly:true, secure: true, 
+  sameSite:'none'
   })
   .send({success: true})
 })
@@ -90,11 +92,11 @@ app.get('/task/:id',  async(req,res)=>{
     const query = {_id: new ObjectId(id)}
     res.send (await tasksCollection.findOne(query))  
 })
-app.get('/tasks/:userEmail', async(req,res)=>{
-
-  // if(req.params.userEmail !== req.user.email){
-  //   return res.status(403).send({message:'forbidden Access'})
-  // }
+app.get('/tasks/:userEmail',logger,verifyToken, async(req,res)=>{
+console.log("owner info ",req.user);
+  if(req.params.userEmail !== req.user.email){
+    return res.status(403).send({message:'forbidden Access'})
+  }
       const email = req.params.userEmail
     const filter = {userEmail: email}
     res.send(await tasksCollection.find(filter).toArray())
