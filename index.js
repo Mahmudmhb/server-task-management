@@ -10,7 +10,7 @@ const port = process.env.PORT || 5000;
 
 app.use(express.json())
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: [ 'https://task-management-dqhg.onrender.com', 'http://localhost:5173'],
   credentials: true
 }))
 app.use(cookieParser())
@@ -68,7 +68,7 @@ app.post('/jwt',  async(req,res)=>{
   // const token = jwt.sign(user, 'secret', {expiresIn: '1h'})
   // res.send(token)
   const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECTET, { expiresIn: '1h' });
- res.cookie('token', token,{httpOnly:true, secure: none, 
+ res.cookie('token', token,{httpOnly:false, secure: false, 
   })
   .send({success: true})
 })
@@ -90,11 +90,11 @@ app.get('/task/:id',  async(req,res)=>{
     const query = {_id: new ObjectId(id)}
     res.send (await tasksCollection.findOne(query))  
 })
-app.get('/tasks/:userEmail',logger,verifyToken, async(req,res)=>{
+app.get('/tasks/:userEmail', async(req,res)=>{
 
-  if(req.params.userEmail !== req.user.email){
-    return res.status(403).send({message:'forbidden Access'})
-  }
+  // if(req.params.userEmail !== req.user.email){
+  //   return res.status(403).send({message:'forbidden Access'})
+  // }
       const email = req.params.userEmail
     const filter = {userEmail: email}
     res.send(await tasksCollection.find(filter).toArray())
